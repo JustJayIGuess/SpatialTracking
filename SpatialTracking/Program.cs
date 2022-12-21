@@ -16,46 +16,46 @@ namespace SpatialTracking
 			LinearTrackingRoom room = new LinearTrackingRoom();
 
 			// Defining 8 cameras
-			LinearTrackingCameraInfo a = new LinearTrackingCameraInfo(
+			LinearTrackingCamera a = new LinearTrackingCamera(
 				0, 
 				0.5f * MathF.PI, 
 				new Vector3(0f, 0f), 
-				LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo ap = new LinearTrackingCameraInfo(
+				LinearTrackingCamera.AngleDirection.Clockwise);
+			LinearTrackingCamera ap = new LinearTrackingCamera(
 				1,
 				0f, 
 				new Vector3(300f, 0f), 
-				LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo b = new LinearTrackingCameraInfo(
+				LinearTrackingCamera.AngleDirection.Clockwise);
+			LinearTrackingCamera b = new LinearTrackingCamera(
 				2,
 				0f,
 				new Vector3(0f, 150f),
-				LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo bp = new LinearTrackingCameraInfo(
+				LinearTrackingCamera.AngleDirection.Clockwise);
+			LinearTrackingCamera bp = new LinearTrackingCamera(
 				3,
 				1.5f * MathF.PI,
 				new Vector3(300f, 150f),
-				LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo c = new LinearTrackingCameraInfo(
+				LinearTrackingCamera.AngleDirection.Clockwise);
+			LinearTrackingCamera c = new LinearTrackingCamera(
 				4,
 				MathF.PI,
 				new Vector3(150f, 0f),
-				LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo cp = new LinearTrackingCameraInfo(
+				LinearTrackingCamera.AngleDirection.Clockwise);
+			LinearTrackingCamera cp = new LinearTrackingCamera(
 				5,
 				0.5f * MathF.PI,
 				new Vector3(0f, 75f),
-				LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo d = new LinearTrackingCameraInfo(
+				LinearTrackingCamera.AngleDirection.Clockwise);
+			LinearTrackingCamera d = new LinearTrackingCamera(
 				6,
 				0f,
 				new Vector3(150f, 150f),
-				LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo dp = new LinearTrackingCameraInfo(
+				LinearTrackingCamera.AngleDirection.Clockwise);
+			LinearTrackingCamera dp = new LinearTrackingCamera(
 				7,
 				1.5f * MathF.PI,
 				new Vector3(300f, 75f),
-				LinearTrackingCameraInfo.AngleDirection.Clockwise);
+				LinearTrackingCamera.AngleDirection.Clockwise);
 
 			// Pairing 8 cameras
 			LinearTrackingPair trackingPairA = new LinearTrackingPair(a, ap);
@@ -79,13 +79,16 @@ namespace SpatialTracking
 			//room.Update(true);
 
 			bool verbose = false; // This should really be a preprocessor thingo but idc
-			int iterations = 100000;
+			int iterations = 100000;	// Increase this to make the outputted error file more detailed
+
+			// Progress bar
 			int[] progSteps = new int[20];
 			for (int i = 0; i < progSteps.Length; i++)
 			{
 				progSteps[i] = (int)MathF.Ceiling(iterations * ((float)i / progSteps.Length));
 			}
 
+			// Stores per-position data for simulated error of algorithm
 			List<(Vector3, Vector3, float, float)> errors = new List<(Vector3, Vector3, float, float)>();
 
 			if (!verbose)
@@ -94,13 +97,16 @@ namespace SpatialTracking
 			}
 			for (int i = 0; i < iterations; i++)
 			{
+				// Select random point in room and simulate incoming (noisy) data from cameras for that point
 				Vector3 target = Vector3.Random2D(10f, 290f, 10f, 140f);
 				float error = 0f;
 
 				SocketInterface.SimulateData(target, room, 0.01f); // 0.001f rads is ~1 pixel for 60deg FOV camera at 720x1280
 
+				// Tell the room to update based on simulated buffer stored in SocketInterface
 				room.Update(verbose);
 
+				// This should be within LinearTrackingRoom
 				Vector3 sum = new Vector3(0f, 0f);
 				float totalConfidence = 0f;
 				foreach (LinearTrackingPair trackingPair in room.trackingPairs)
@@ -112,7 +118,7 @@ namespace SpatialTracking
 				{
 					sum += (Vector3)trackingPair.predictedPoint * trackingPair.confidence / totalConfidence;
 				}
-				error += Vector3.SqrDistance(target, sum);
+				error += Vector3.SqrDistance(target, sum);	// SqrDistance 'cause faster
 
 				errors.Add((target, sum, error, totalConfidence));
 
@@ -133,6 +139,7 @@ namespace SpatialTracking
 				Console.WriteLine();
 			}
 
+			// Write error data to file
 			Console.WriteLine("Writing to file...");
 			using (TextWriter tw = new StreamWriter("LinearTrackingRoom.txt"))
 			{
@@ -145,6 +152,7 @@ namespace SpatialTracking
 		}
 
 		//For circular tracking architecture
+
 		//static void Main(string[] args)
 		//{
 		//	room = new CircularTrackingRoom(13f,

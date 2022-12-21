@@ -7,10 +7,20 @@ using System.Text;
 
 namespace SpatialTracking
 {
+	/// <summary>
+	/// A static class for managing and interfacing with the real cameras through a network socket.
+	/// </summary>
 	static class SocketInterface
 	{
+		/// <summary>
+		/// Represents whether the server is active.
+		/// </summary>
 		public static bool Active { get; private set; } = false;
 
+		/// <summary>
+		/// Buffer containing most recent data sent from cameras.
+		/// Key represents the channel, value represents the observed angle from the physical camera on that channel.
+		/// </summary>
 		private static Dictionary<int, float> buffer = new Dictionary<int, float>();
 
 		private static Random random = new Random();
@@ -59,12 +69,14 @@ namespace SpatialTracking
 		}
 
 		/// <summary>
-		/// Calculates a simulated data buffer
+		/// Calculates a simulated noisy data buffer based on a referenced room, at a specified world point.
 		/// </summary>
 		public static void SimulateData(Vector3 point, LinearTrackingRoom room, float noise = 0f)
 		{
+			// Create a list-form copy of all the LinearTrackingPairs in the room.
 			LinearTrackingPair[] trackingPairs = room.trackingPairs.ToArray();
 
+			// Calculate observed angles for each camera in each LinearTrackingPair.
 			foreach (LinearTrackingPair pair in trackingPairs)
 			{
 				float rawAngle1 = MathF.Atan((point.y - pair.camera1.worldPosition.y) / (point.x - pair.camera1.worldPosition.x));
@@ -87,6 +99,11 @@ namespace SpatialTracking
 			}
 		}
 
+		/// <summary>
+		/// Adds the channel required by the cameras in <c>pair</c> if they are not already present.
+		/// </summary>
+		/// <param name="pair">The tracking pair to be added.</param>
+		/// <param name="initialValue">Optional parameter for the initial value of the buffer on this channel.</param>
 		public static void AddChannels(LinearTrackingPair pair, float initialValue = -1f)
 		{
 			if (!buffer.ContainsKey(pair.camera1.channel))
@@ -99,21 +116,25 @@ namespace SpatialTracking
 			}
 		}
 
+		/// <summary>
+		/// Removes the channel <c>channel</c>.
+		/// </summary>
+		/// <param name="channel"></param>
 		public static void RemoveChannel(int channel)
 		{
 			buffer.Remove(channel);
 		}
 
 		/// <summary>
-		/// Returns simulated data.
+		/// Returns data from the buffer at channel.
 		/// </summary>
-		/// <param name="trueChannel">The actual channel that data will be fetched from on the socket. Channel may elsewhere refer to the 'id' of the camera pair.</param>
+		/// <param name="channel">The channel that data will be fetched from on the socket.</param>
 		/// <returns></returns>
-		public static float GetSimulatedData(int trueChannel)
+		public static float GetData(int channel)
 		{
-			if (buffer.ContainsKey(trueChannel))
+			if (buffer.ContainsKey(channel))
 			{
-				return buffer[trueChannel];
+				return buffer[channel];
 			}
 			else
 			{
@@ -121,6 +142,9 @@ namespace SpatialTracking
 			}
 		}
 
+		/// <summary>
+		/// Displays the data buffer.
+		/// </summary>
 		public static void PrintBuffer()
 		{
 			Console.WriteLine("{" + string.Join(", ", buffer.Select(pair => string.Format("{0}: {1}", pair.Key, pair.Value))) + "}");

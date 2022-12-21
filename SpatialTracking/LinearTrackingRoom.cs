@@ -10,7 +10,7 @@ namespace SpatialTracking
 	{
 		public List<LinearTrackingPair> trackingPairs { get; private set; } = new List<LinearTrackingPair>();
 
-		private Dictionary<LinearTrackingCameraInfo, int> cameras = new Dictionary<LinearTrackingCameraInfo, int>();
+		private Dictionary<LinearTrackingCamera, int> cameras = new Dictionary<LinearTrackingCamera, int>();
 
 		public LinearTrackingRoom()
 		{
@@ -70,7 +70,7 @@ namespace SpatialTracking
 
 		public void Update(bool verbose = false)
 		{
-			foreach (KeyValuePair<LinearTrackingCameraInfo, int> entry in cameras)
+			foreach (KeyValuePair<LinearTrackingCamera, int> entry in cameras)
 			{
 				entry.Key.Update();
 			}
