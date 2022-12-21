@@ -16,14 +16,46 @@ namespace SpatialTracking
 			LinearTrackingRoom room = new LinearTrackingRoom();
 
 			// Defining 8 cameras
-			LinearTrackingCameraInfo a = new LinearTrackingCameraInfo(0, 0.5f * MathF.PI, new Vector3(0f, 0f), LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo ap = new LinearTrackingCameraInfo(1, 0f, new Vector3(300f, 0f), LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo b = new LinearTrackingCameraInfo(2, 0f, new Vector3(0f, 150f), LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo bp = new LinearTrackingCameraInfo(3, 1.5f * MathF.PI, new Vector3(300f, 150f), LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo c = new LinearTrackingCameraInfo(4, MathF.PI, new Vector3(150f, 0f), LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo cp = new LinearTrackingCameraInfo(5, 0.5f * MathF.PI, new Vector3(0f, 75f), LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo d = new LinearTrackingCameraInfo(6, 0f, new Vector3(150f, 150f), LinearTrackingCameraInfo.AngleDirection.Clockwise);
-			LinearTrackingCameraInfo dp = new LinearTrackingCameraInfo(7, 1.5f * MathF.PI, new Vector3(300f, 75f), LinearTrackingCameraInfo.AngleDirection.Clockwise);
+			LinearTrackingCameraInfo a = new LinearTrackingCameraInfo(
+				0, 
+				0.5f * MathF.PI, 
+				new Vector3(0f, 0f), 
+				LinearTrackingCameraInfo.AngleDirection.Clockwise);
+			LinearTrackingCameraInfo ap = new LinearTrackingCameraInfo(
+				1,
+				0f, 
+				new Vector3(300f, 0f), 
+				LinearTrackingCameraInfo.AngleDirection.Clockwise);
+			LinearTrackingCameraInfo b = new LinearTrackingCameraInfo(
+				2,
+				0f,
+				new Vector3(0f, 150f),
+				LinearTrackingCameraInfo.AngleDirection.Clockwise);
+			LinearTrackingCameraInfo bp = new LinearTrackingCameraInfo(
+				3,
+				1.5f * MathF.PI,
+				new Vector3(300f, 150f),
+				LinearTrackingCameraInfo.AngleDirection.Clockwise);
+			LinearTrackingCameraInfo c = new LinearTrackingCameraInfo(
+				4,
+				MathF.PI,
+				new Vector3(150f, 0f),
+				LinearTrackingCameraInfo.AngleDirection.Clockwise);
+			LinearTrackingCameraInfo cp = new LinearTrackingCameraInfo(
+				5,
+				0.5f * MathF.PI,
+				new Vector3(0f, 75f),
+				LinearTrackingCameraInfo.AngleDirection.Clockwise);
+			LinearTrackingCameraInfo d = new LinearTrackingCameraInfo(
+				6,
+				0f,
+				new Vector3(150f, 150f),
+				LinearTrackingCameraInfo.AngleDirection.Clockwise);
+			LinearTrackingCameraInfo dp = new LinearTrackingCameraInfo(
+				7,
+				1.5f * MathF.PI,
+				new Vector3(300f, 75f),
+				LinearTrackingCameraInfo.AngleDirection.Clockwise);
 
 			// Pairing 8 cameras
 			LinearTrackingPair trackingPairA = new LinearTrackingPair(a, ap);
@@ -46,8 +78,8 @@ namespace SpatialTracking
 
 			//room.Update(true);
 
-			bool verbose = false;
-			int iterations = 1;
+			bool verbose = false; // This should really be a preprocessor thingo but idc
+			int iterations = 100000;
 			int[] progSteps = new int[20];
 			for (int i = 0; i < progSteps.Length; i++)
 			{
@@ -65,7 +97,7 @@ namespace SpatialTracking
 				Vector3 target = Vector3.Random2D(10f, 290f, 10f, 140f);
 				float error = 0f;
 
-				SocketInterface.SimulateData(target, room, 0.01f); // 0.001f is ~1 pixel for 60deg FOV camera at 720x1280
+				SocketInterface.SimulateData(target, room, 0.01f); // 0.001f rads is ~1 pixel for 60deg FOV camera at 720x1280
 
 				room.Update(verbose);
 
