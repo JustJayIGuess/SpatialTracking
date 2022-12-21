@@ -209,6 +209,6 @@ namespace SpatialTracking
 		//	//}
 
 		//	Console.ReadLine();
-		}
+		//}
 	}
 }
