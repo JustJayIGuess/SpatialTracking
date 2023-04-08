@@ -80,7 +80,7 @@ namespace SpatialTracking
 			// Find intersection of the rays
 			float x = (intercept2 - intercept1) / (gradient1 - gradient2);
 			float y = gradient1 * x + intercept1;
-			PredictedPoint = new Vector3(x, y);
+			PredictedPoint = new Vector3(x, y, 0f);
 
 			// Assign a confidence value (0f-1f) to the intersection. This is based on:
 			//		- How perpendicular the rays are; if they are near-parallel then small deviations will

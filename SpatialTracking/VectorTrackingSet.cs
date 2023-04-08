@@ -29,16 +29,21 @@ namespace SpatialTracking
 
 			// ObservedAngles = [theta, phi]
 
-			Matrix m = new Matrix(3, 3, 0f);
+			Matrix projectionSum = new Matrix(3, 3, 0f);
+			Matrix biasSum = new Matrix(3, 1, 0f);
+
 			for (int i = 0; i < Cameras.Length; i++)
 			{
 				directions[i] = new Vector3(Cameras[i].ObservedAngles[0], Cameras[i].ObservedAngles[1]).ToMatrix();
 				offsets[i] = Cameras[i].WorldPosition.ToMatrix();
 
-				m = m + Matrix.Identity(3) - (directions[i] * Matrix.Transpose(directions[i]));
+				Matrix projection = Matrix.Identity(3) - (directions[i] * Matrix.Transpose(directions[i]));
+
+				projectionSum += projection;
+				biasSum += projection * offsets[i];
 			}
 
-			throw new NotImplementedException();
+			PredictedPoint = (Matrix.Invert3x3(projectionSum) * biasSum).ToVector3();
 		}
 	}
 }

@@ -75,6 +75,19 @@ namespace SpatialTracking
 			set => data[row, col] = value;
 		}
 
+		public Vector3 ToVector3()
+		{
+			if (Rows == 3 && Cols == 1)
+			{
+				Vector3 res = new Vector3(this[0, 0], this[1, 0], this[2, 0]);
+				return res;
+			}
+			else
+			{
+				throw new ArgumentException("Incorrect Matrix size to convert to Vector3!");
+			}
+		}
+
 		public float this[int row]
 		{
 			get => data[row, 0];

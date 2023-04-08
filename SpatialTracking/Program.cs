@@ -1,11 +1,10 @@
-﻿#define LINEAR
+﻿#define VECTOR
 #define WRITE
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 
 namespace SpatialTracking
@@ -26,11 +25,24 @@ namespace SpatialTracking
 
 			room.AddTrackingSet(trackingSet);
 
-			Vector3 target = new Vector3(0.2f, 0.2f, 0.2f);
-			SocketInterface.SimulateVectorData(target, room, 0.001f);
+			float error = 0f;
+			float noise = 0.1f;
 
-			SocketInterface.PrintBuffer();
-			room.Update();
+			for (int i = 0; i < 100000; i++)
+			{
+				Vector3 target = Vector3.Random2D(-1f, 1f, -1f, 1f);
+				target.z = ((float)new Random().NextDouble() * 2f) - 1f;
+				SocketInterface.SimulateVectorData(target, room, noise);
+
+				room.Update();
+
+				error += Vector3.SqrDistance(target, (Vector3)trackingSet.PredictedPoint);
+			}
+			
+
+			Console.WriteLine($"{noise}:\n\tError: {error / 100000f}");
+
+			Console.ReadLine();
 		}
 #endif
 
@@ -49,42 +61,42 @@ namespace SpatialTracking
 			TrackingCamera a = new TrackingCamera(
 				0,
 				0.5f * MathF.PI,
-				new Vector3(0f, 0f),
+				new Vector3(0f, 0f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera ap = new TrackingCamera(
 				1,
 				0f,
-				new Vector3(300f, 0f),
+				new Vector3(300f, 0f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera b = new TrackingCamera(
 				2,
 				0f,
-				new Vector3(0f, 150f),
+				new Vector3(0f, 150f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera bp = new TrackingCamera(
 				3,
 				1.5f * MathF.PI,
-				new Vector3(300f, 150f),
+				new Vector3(300f, 150f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera c = new TrackingCamera(
 				4,
 				MathF.PI,
-				new Vector3(150f, 0f),
+				new Vector3(150f, 0f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera cp = new TrackingCamera(
 				5,
 				0.5f * MathF.PI,
-				new Vector3(0f, 75f),
+				new Vector3(0f, 75f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera d = new TrackingCamera(
 				6,
 				0f,
-				new Vector3(150f, 150f),
+				new Vector3(150f, 150f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera dp = new TrackingCamera(
 				7,
 				1.5f * MathF.PI,
-				new Vector3(300f, 75f),
+				new Vector3(300f, 75f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 
 			// Pairing 8 cameras
@@ -103,7 +115,7 @@ namespace SpatialTracking
 			room.AddTrackingSet(trackingPairE);
 			room.AddTrackingSet(trackingPairF);
 
-			//Vector3 target = new Vector3(242.12247f, 103.94585f);
+			//Vector3 target = new Vector3(242.12247f, 103.94585f, 0f);
 			//SocketInterface.SimulateData(target, room, 0.001f); // 0.001f is ~1 pixel for 60deg FOV camera at 720x1280
 
 			//room.Update(true);
@@ -137,7 +149,7 @@ namespace SpatialTracking
 				room.Update(verbose);
 
 				// This should be within TrackingRoom
-				Vector3 sum = new Vector3(0f, 0f);
+				Vector3 sum = new Vector3(0f, 0f, 0f);
 				float totalConfidence = 0f;
 				foreach (LinearTrackingSet trackingPair in room.TrackingSets)
 				{
@@ -193,10 +205,10 @@ namespace SpatialTracking
 		static void Main(string[] args)
 		{
 			room = new CircularTrackingRoom(13f,
-				(new Vector3(70f, 0f), Vector3.forward),
-				(new Vector3(140f, 51f), Vector3.left),
-				(new Vector3(70f, 103f), Vector3.backward),
-				(new Vector3(0f, 20f), Vector3.right)
+				(new Vector3(70f, 0f, 0f), Vector3.forward),
+				(new Vector3(140f, 51f, 0f), Vector3.left),
+				(new Vector3(70f, 103f, 0f), Vector3.backward),
+				(new Vector3(0f, 20f, 0f), Vector3.right)
 			);
 
 			//Console.Write("x: ");

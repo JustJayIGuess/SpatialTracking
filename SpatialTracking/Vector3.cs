@@ -30,9 +30,9 @@ namespace SpatialTracking
 		{
 			data = new float[3];
 
-			x = MathF.Sin(theta) * MathF.Cos(phi);
-			y = MathF.Sin(theta) * MathF.Sin(phi);
-			z = MathF.Cos(theta);
+			x = MathF.Sin(phi) * MathF.Cos(theta);
+			y = MathF.Sin(phi) * MathF.Sin(theta);
+			z = MathF.Cos(phi);
 		}
 
 		public Matrix ToMatrix()
@@ -158,7 +158,7 @@ namespace SpatialTracking
 
 		public static Vector3 Random2D(float xMin, float xMax, float yMin, float yMax)
 		{
-			return new Vector3((float)random.NextDouble() * (xMax - xMin) + xMin, (float)random.NextDouble() * (yMax - yMin) + yMin);
+			return new Vector3((float)random.NextDouble() * (xMax - xMin) + xMin, (float)random.NextDouble() * (yMax - yMin) + yMin, 0f);
 		}
 
 		public override bool Equals(object obj)

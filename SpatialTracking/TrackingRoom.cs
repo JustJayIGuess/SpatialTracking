@@ -26,24 +26,20 @@ namespace SpatialTracking
 			TrackingSets.Add(trackingSet);
 			SocketInterface.AddChannels(trackingSet);
 
-			if (cameraUsageCount.ContainsKey(trackingSet.Cameras[0]))
+			foreach (TrackingCamera camera in trackingSet.Cameras)
 			{
-				cameraUsageCount[trackingSet.Cameras[0]] += 1;
-			}
-			else
-			{
-				cameraUsageCount.Add(trackingSet.Cameras[0], 1);
-			}
-
-			if (cameraUsageCount.ContainsKey(trackingSet.Cameras[1]))
-			{
-				cameraUsageCount[trackingSet.Cameras[1]] += 1;
-			}
-			else
-			{
-				cameraUsageCount.Add(trackingSet.Cameras[1], 1);
+				if (cameraUsageCount.ContainsKey(camera))
+				{
+					cameraUsageCount[camera] += 1;
+				}
+				else
+				{
+					cameraUsageCount.Add(camera, 1);
+				}
 			}
 		}
+
+		// Fix this!
 		public void RemoveTrackingSet(TrackingSet trackingSet)
 		{
 			TrackingSets.Remove(trackingSet);

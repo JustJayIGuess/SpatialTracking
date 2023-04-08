@@ -117,10 +117,12 @@ namespace SpatialTracking
 			// Calculate observed angles for each camera in each LinearTrackingPair.
 			foreach (TrackingCamera camera in trackingSet.Cameras)
 			{
-				Vector3 dir = camera.WorldPosition - point;
+				Vector3 dir = (camera.WorldPosition - point).Normalized();
 
-				buffer[camera.Channel][0] = MathF.Atan2(dir.y, dir.x);
-				buffer[camera.Channel][1] = MathF.Acos(dir.z);
+				buffer[camera.Channel] = new float[] {
+					MathF.Atan2(dir.y, dir.x) + (float)(random.NextDouble() - 0.5f) * 2f * noise, 
+					MathF.Acos(dir.z) + (float)(random.NextDouble() - 0.5f) * 2f * noise
+				};
 			}
 		}
 
@@ -171,7 +173,12 @@ namespace SpatialTracking
 		/// </summary>
 		public static void PrintBuffer()
 		{
-			Console.WriteLine("{" + string.Join(", ", buffer.Select(set => string.Format("{0}: {1}", set.Key, set.Value))) + "}");
+			Console.Write("[ ");
+			foreach (KeyValuePair<int, float[]> kvp in buffer)
+			{
+				Console.Write(kvp.Key + ": [" + string.Join(", ", kvp.Value) + "], ");
+			}
+			Console.WriteLine("]");
 		}
 
 	}
