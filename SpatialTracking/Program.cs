@@ -1,4 +1,5 @@
 ﻿#define LINEAR
+#define WRITE
 
 using System;
 using System.Collections.Generic;
@@ -11,11 +12,37 @@ namespace SpatialTracking
 {
 	class Program
 	{
+#if VECTOR
+		static void Main(string[] args)
+		{
+			TrackingRoom room = new TrackingRoom();
+
+			TrackingCamera a = new TrackingCamera(0, 0f, new Vector3(1f, 0f, -1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera b = new TrackingCamera(1, 0f, new Vector3(-1f, 1f, -1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera c = new TrackingCamera(2, 0f, new Vector3(-1f, -1f, -1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera d = new TrackingCamera(3, 0f, new Vector3(0f, 0f, 1f), TrackingCamera.AngleDirection.Clockwise);
+
+			VectorTrackingSet trackingSet = new VectorTrackingSet(a, b, c, d);
+
+			room.AddTrackingSet(trackingSet);
+
+			Vector3 target = new Vector3(0.2f, 0.2f, 0.2f);
+			SocketInterface.SimulateVectorData(target, room, 0.001f);
+
+			SocketInterface.PrintBuffer();
+			room.Update();
+		}
+#endif
 
 #if LINEAR
 		// For Linear Tracking Architecture
 		static void Main(string[] args)
 		{
+			Matrix m = Matrix.RandomOfSize((3, 3), (-2f, 2f));
+			m.Print();
+
+			Matrix.Invert3x3(m).Print();
+
 			TrackingRoom room = new TrackingRoom();
 
 			// Defining 8 cameras
@@ -142,6 +169,7 @@ namespace SpatialTracking
 				Console.WriteLine();
 			}
 
+#if WRITE
 			// Write error data to file
 			Console.WriteLine("Writing to file...");
 			using (TextWriter tw = new StreamWriter("TrackingRoom.txt"))
@@ -151,6 +179,7 @@ namespace SpatialTracking
 					tw.WriteLine($"{e.Item1}, {e.Item2}, {e.Item3}, {e.Item4}");
 				}
 			}
+#endif
 
 			Console.WriteLine("\n\nPress enter to exit.");
 			Console.ReadLine();
@@ -227,5 +256,6 @@ namespace SpatialTracking
 			Console.ReadLine();
 		}
 #endif
+
 	}
 }

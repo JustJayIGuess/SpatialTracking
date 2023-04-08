@@ -21,7 +21,7 @@ namespace SpatialTracking
 		/// <summary>
 		/// The angle observed from the cameras POV.
 		/// </summary>
-		public float ObservedAngle { get; set; }
+		public float[] ObservedAngles { get; set; }
 		/// <summary>
 		/// The world angle at which the observedAngle should equal 0.
 		/// </summary>
@@ -52,13 +52,13 @@ namespace SpatialTracking
 		/// <param name="measurementDirection">
 		/// The direction that the camera measures angles from the zeroangle point, as seen from above.
 		/// </param>
-		public TrackingCamera(int channel, float zeroAngle, Vector3 worldPosition, TrackingCamera.AngleDirection measurementDirection)
+		public TrackingCamera(int channel, float zeroAngle, Vector3 worldPosition, AngleDirection measurementDirection)
 		{
 			WorldPosition = worldPosition;
 			MeasurementDirection = measurementDirection;
 			ZeroAngle = zeroAngle;
 			Channel = channel;
-			ObservedAngle = -1f;
+			ObservedAngles = null;
 		}
 
 		/// <summary>
@@ -66,7 +66,7 @@ namespace SpatialTracking
 		/// </summary>
 		public void Update()
 		{
-			ObservedAngle = SocketInterface.GetData(Channel);
+			ObservedAngles = SocketInterface.GetData(Channel);
 		}
 	}
 }

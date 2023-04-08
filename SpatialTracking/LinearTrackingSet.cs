@@ -13,6 +13,9 @@ using System.Text;
 
 namespace SpatialTracking
 {
+	/// <summary>
+	/// Note: this only functions in 2D currently.
+	/// </summary>
 	class LinearTrackingSet : TrackingSet
 	{
 		/// <summary>
@@ -63,8 +66,8 @@ namespace SpatialTracking
 		public override void Update(bool verbose)
 		{
 			// Convert observed angles to true 'world angles'
-			float trueAngle1 = Cameras[0].ObservedAngle * (int)Cameras[0].MeasurementDirection + Cameras[0].ZeroAngle;
-			float trueAngle2 = Cameras[1].ObservedAngle * (int)Cameras[1].MeasurementDirection + Cameras[1].ZeroAngle;
+			float trueAngle1 = Cameras[0].ObservedAngles[0] * (int)Cameras[0].MeasurementDirection + Cameras[0].ZeroAngle;
+			float trueAngle2 = Cameras[1].ObservedAngles[0] * (int)Cameras[1].MeasurementDirection + Cameras[1].ZeroAngle;
 
 			// Find gradients of rays exiting the cameras at their true angles
 			float gradient1 = MathF.Tan(trueAngle1);
@@ -92,10 +95,10 @@ namespace SpatialTracking
 				Console.WriteLine($"Calculated m1={gradient1}, m2={gradient2} from cameras:\n\t1:\n" +
 					$"\t\tpos: {Cameras[0].WorldPosition}\n" +
 					$"\t\tphi: {Cameras[0].ZeroAngle * 180f / MathF.PI}\n" +
-					$"\t\ttheta: {Cameras[0].ObservedAngle * 180f / MathF.PI}\n\t2:\n" +
+					$"\t\ttheta: {Cameras[0].ObservedAngles[0] * 180f / MathF.PI}\n\t2:\n" +
 					$"\t\tpos: {Cameras[1].WorldPosition}\n" +
 					$"\t\tphi: {Cameras[1].ZeroAngle * 180f / MathF.PI}\n" +
-					$"\t\ttheta: {Cameras[1].ObservedAngle * 180f / MathF.PI}\n" +
+					$"\t\ttheta: {Cameras[1].ObservedAngles[0] * 180f / MathF.PI}\n" +
 					$"on channel ({Cameras[0].Channel}, {Cameras[1].Channel}) with confidence {confidence}");
 				Console.WriteLine(PredictedPoint);
 			}

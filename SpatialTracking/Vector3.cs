@@ -6,17 +6,11 @@ namespace SpatialTracking
 	{
 		private readonly float[] data;
 
+#pragma warning disable IDE1006 // Naming Styles
 		public float x { get => data[0]; set => data[0] = value; }
 		public float y { get => data[1]; set => data[1] = value; }
 		public float z { get => data[2]; set => data[2] = value; }
-		public Vector3(float x, float y)
-		{
-			data = new float[3];
-
-			this.x = x;
-			this.y = y;
-			z = 0f;
-		}
+#pragma warning restore IDE1006 // Naming Styles
 
 		public Vector3(float x, float y, float z)
 		{
@@ -25,6 +19,30 @@ namespace SpatialTracking
 			this.x = x;
 			this.y = y;
 			this.z = z;
+		}
+
+		/// <summary>
+		/// Create a unit vector with angles theta and phi.
+		/// </summary>
+		/// <param name="theta"></param>
+		/// <param name="phi"></param>
+		public Vector3(float theta, float phi)
+		{
+			data = new float[3];
+
+			x = MathF.Sin(theta) * MathF.Cos(phi);
+			y = MathF.Sin(theta) * MathF.Sin(phi);
+			z = MathF.Cos(theta);
+		}
+
+		public Matrix ToMatrix()
+		{
+			Matrix res = new Matrix(3, 1);
+			res[0, 0] = x;
+			res[1, 0] = y;
+			res[2, 0] = z;
+
+			return res;
 		}
 
 		public static readonly Vector3 up = new Vector3(0f, 0f, 1f);

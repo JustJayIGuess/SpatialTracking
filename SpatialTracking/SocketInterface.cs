@@ -21,7 +21,7 @@ namespace SpatialTracking
 		/// Buffer containing most recent data sent from cameras.
 		/// Key represents the channel, value represents the observed angle from the physical camera on that channel.
 		/// </summary>
-		private static readonly Dictionary<int, float> buffer = new Dictionary<int, float>();
+		private static readonly Dictionary<int, float[]> buffer = new Dictionary<int, float[]>();
 
 		private static readonly Random random = new Random();
 
@@ -87,7 +87,7 @@ namespace SpatialTracking
 				{
 					rawAngle1 -= MathF.PI;
 				}
-				buffer[set.Cameras[0].Channel] = rawAngle1 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
+				buffer[set.Cameras[0].Channel][0] = rawAngle1 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
 
 				float rawAngle2 = MathF.Atan((point.y - set.Cameras[1].WorldPosition.y) / (point.x - set.Cameras[1].WorldPosition.x));
 				rawAngle2 *= (int)set.Cameras[1].MeasurementDirection;
@@ -96,7 +96,31 @@ namespace SpatialTracking
 				{
 					rawAngle2 -= MathF.PI;
 				}
-				buffer[set.Cameras[1].Channel] = rawAngle2 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
+				buffer[set.Cameras[1].Channel][0] = rawAngle2 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
+			}
+		}
+
+		/// <summary>
+		/// Simulate data for a room using vector tracking.<br/><br/>
+		/// Buffer format for vector data is:<br/>
+		/// <c>
+		/// [ [] ]
+		/// </c>
+		/// </summary>
+		/// <param name="point"></param>
+		/// <param name="room"></param>
+		/// <param name="noise"></param>
+		public static void SimulateVectorData(Vector3 point, TrackingRoom room, float noise = 0f)
+		{
+			TrackingSet trackingSet = room.TrackingSets[0];
+
+			// Calculate observed angles for each camera in each LinearTrackingPair.
+			foreach (TrackingCamera camera in trackingSet.Cameras)
+			{
+				Vector3 dir = camera.WorldPosition - point;
+
+				buffer[camera.Channel][0] = MathF.Atan2(dir.y, dir.x);
+				buffer[camera.Channel][1] = MathF.Acos(dir.z);
 			}
 		}
 
@@ -107,13 +131,12 @@ namespace SpatialTracking
 		/// <param name="initialValue">Optional parameter for the initial value of the buffer on this channel.</param>
 		public static void AddChannels(TrackingSet set, float initialValue = -1f)
 		{
-			if (!buffer.ContainsKey(set.Cameras[0].Channel))
+			foreach (TrackingCamera camera in set.Cameras)
 			{
-				buffer.Add(set.Cameras[0].Channel, initialValue);
-			}
-			if (!buffer.ContainsKey(set.Cameras[1].Channel))
-			{
-				buffer.Add(set.Cameras[1].Channel, initialValue);
+				if (!buffer.ContainsKey(camera.Channel))
+				{
+					buffer.Add(camera.Channel, new float[] { initialValue });
+				}
 			}
 		}
 
@@ -131,7 +154,7 @@ namespace SpatialTracking
 		/// </summary>
 		/// <param name="channel">The channel that data will be fetched from on the socket.</param>
 		/// <returns></returns>
-		public static float GetData(int channel)
+		public static float[] GetData(int channel)
 		{
 			if (buffer.ContainsKey(channel))
 			{
@@ -139,7 +162,7 @@ namespace SpatialTracking
 			}
 			else
 			{
-				return -1;
+				return null;
 			}
 		}
 
