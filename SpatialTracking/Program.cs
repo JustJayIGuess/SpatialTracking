@@ -1,77 +1,80 @@
-﻿using System;
+﻿#define LINEAR
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace SpatialTracking
 {
-
 	class Program
 	{
-		//public static CircularTrackingRoom room;
 
+#if LINEAR
+		// For Linear Tracking Architecture
 		static async Task Main(string[] args)
 		{
-			LinearTrackingRoom room = new LinearTrackingRoom();
+			TrackingRoom room = new TrackingRoom();
 
 			// Defining 8 cameras
 			LinearTrackingCamera a = new LinearTrackingCamera(
-				0, 
-				0.5f * MathF.PI, 
-				new Vector3(0f, 0f), 
-				LinearTrackingCamera.AngleDirection.Clockwise);
+				0,
+				0.5f * MathF.PI,
+				new Vector3(0f, 0f),
+				TrackingCamera.AngleDirection.Clockwise);
 			LinearTrackingCamera ap = new LinearTrackingCamera(
 				1,
-				0f, 
-				new Vector3(300f, 0f), 
-				LinearTrackingCamera.AngleDirection.Clockwise);
+				0f,
+				new Vector3(300f, 0f),
+				TrackingCamera.AngleDirection.Clockwise);
 			LinearTrackingCamera b = new LinearTrackingCamera(
 				2,
 				0f,
 				new Vector3(0f, 150f),
-				LinearTrackingCamera.AngleDirection.Clockwise);
+				TrackingCamera.AngleDirection.Clockwise);
 			LinearTrackingCamera bp = new LinearTrackingCamera(
 				3,
 				1.5f * MathF.PI,
 				new Vector3(300f, 150f),
-				LinearTrackingCamera.AngleDirection.Clockwise);
+				TrackingCamera.AngleDirection.Clockwise);
 			LinearTrackingCamera c = new LinearTrackingCamera(
 				4,
 				MathF.PI,
 				new Vector3(150f, 0f),
-				LinearTrackingCamera.AngleDirection.Clockwise);
+				TrackingCamera.AngleDirection.Clockwise);
 			LinearTrackingCamera cp = new LinearTrackingCamera(
 				5,
 				0.5f * MathF.PI,
 				new Vector3(0f, 75f),
-				LinearTrackingCamera.AngleDirection.Clockwise);
+				TrackingCamera.AngleDirection.Clockwise);
 			LinearTrackingCamera d = new LinearTrackingCamera(
 				6,
 				0f,
 				new Vector3(150f, 150f),
-				LinearTrackingCamera.AngleDirection.Clockwise);
+				TrackingCamera.AngleDirection.Clockwise);
 			LinearTrackingCamera dp = new LinearTrackingCamera(
 				7,
 				1.5f * MathF.PI,
 				new Vector3(300f, 75f),
-				LinearTrackingCamera.AngleDirection.Clockwise);
+				TrackingCamera.AngleDirection.Clockwise);
 
 			// Pairing 8 cameras
-			LinearTrackingPair trackingPairA = new LinearTrackingPair(a, ap);
-			LinearTrackingPair trackingPairB = new LinearTrackingPair(b, bp);
-			LinearTrackingPair trackingPairC = new LinearTrackingPair(c, cp);
-			LinearTrackingPair trackingPairD = new LinearTrackingPair(d, dp);
-			LinearTrackingPair trackingPairE = new LinearTrackingPair(c, dp);
-			LinearTrackingPair trackingPairF = new LinearTrackingPair(d, cp);
+			LinearTrackingSet trackingPairA = new LinearTrackingSet(a, ap);
+			LinearTrackingSet trackingPairB = new LinearTrackingSet(b, bp);
+			LinearTrackingSet trackingPairC = new LinearTrackingSet(c, cp);
+			LinearTrackingSet trackingPairD = new LinearTrackingSet(d, dp);
+			LinearTrackingSet trackingPairE = new LinearTrackingSet(c, dp);
+			LinearTrackingSet trackingPairF = new LinearTrackingSet(d, cp);
 
 			// Adding camera pairs
-			room.Add(trackingPairA);
-			room.Add(trackingPairB);
-			room.Add(trackingPairC);
-			room.Add(trackingPairD);
-			room.Add(trackingPairE);
-			room.Add(trackingPairF);
+			room.AddTrackingSet(trackingPairA);
+			room.AddTrackingSet(trackingPairB);
+			room.AddTrackingSet(trackingPairC);
+			room.AddTrackingSet(trackingPairD);
+			room.AddTrackingSet(trackingPairE);
+			room.AddTrackingSet(trackingPairF);
 
 			//Vector3 target = new Vector3(242.12247f, 103.94585f);
 			//SocketInterface.SimulateData(target, room, 0.001f); // 0.001f is ~1 pixel for 60deg FOV camera at 720x1280
@@ -79,7 +82,7 @@ namespace SpatialTracking
 			//room.Update(true);
 
 			bool verbose = false; // This should really be a preprocessor thingo but idc
-			int iterations = 100000;	// Increase this to make the outputted error file more detailed
+			int iterations = 100000;    // Increase this to make the outputted error file more detailed
 
 			// Progress bar
 			int[] progSteps = new int[20];
@@ -101,24 +104,24 @@ namespace SpatialTracking
 				Vector3 target = Vector3.Random2D(10f, 290f, 10f, 140f);
 				float error = 0f;
 
-				SocketInterface.SimulateData(target, room, 0.01f); // 0.001f rads is ~1 pixel for 60deg FOV camera at 720x1280
+				SocketInterface.SimulateLinearData(target, room, 0.01f); // 0.001f rads is ~1 pixel for 60deg FOV camera at 720x1280
 
 				// Tell the room to update based on simulated buffer stored in SocketInterface
 				room.Update(verbose);
 
-				// This should be within LinearTrackingRoom
+				// This should be within TrackingRoom
 				Vector3 sum = new Vector3(0f, 0f);
 				float totalConfidence = 0f;
-				foreach (LinearTrackingPair trackingPair in room.trackingPairs)
+				foreach (LinearTrackingSet trackingPair in room.TrackingSets)
 				{
 					totalConfidence += trackingPair.confidence;
 				}
 
-				foreach (LinearTrackingPair trackingPair in room.trackingPairs)
+				foreach (LinearTrackingSet trackingPair in room.TrackingSets)
 				{
-					sum += (Vector3)trackingPair.predictedPoint * trackingPair.confidence / totalConfidence;
+					sum += (Vector3)trackingPair.PredictedPoint * trackingPair.confidence / totalConfidence;
 				}
-				error += Vector3.SqrDistance(target, sum);	// SqrDistance 'cause faster
+				error += Vector3.SqrDistance(target, sum);  // SqrDistance 'cause faster
 
 				errors.Add((target, sum, error, totalConfidence));
 
@@ -141,7 +144,7 @@ namespace SpatialTracking
 
 			// Write error data to file
 			Console.WriteLine("Writing to file...");
-			using (TextWriter tw = new StreamWriter("LinearTrackingRoom.txt"))
+			using (TextWriter tw = new StreamWriter("TrackingRoom.txt"))
 			{
 				foreach ((Vector3, Vector3, float, float) e in errors)
 					tw.WriteLine($"{e.Item1}, {e.Item2}, {e.Item3}, {e.Item4}");
@@ -150,73 +153,77 @@ namespace SpatialTracking
 			Console.WriteLine("\n\nPress enter to exit.");
 			Console.ReadLine();
 		}
+#endif
 
+#if CIRCULAR
 		//For circular tracking architecture
+		public static CircularTrackingRoom room;
 
-		//static void Main(string[] args)
-		//{
-		//	room = new CircularTrackingRoom(13f,
-		//		(new Vector3(70f, 0f), Vector3.forward),
-		//		(new Vector3(140f, 51f), Vector3.left),
-		//		(new Vector3(70f, 103f), Vector3.backward),
-		//		(new Vector3(0f, 20f), Vector3.right)
-		//	);
+		static void Main(string[] args)
+		{
+			room = new CircularTrackingRoom(13f,
+				(new Vector3(70f, 0f), Vector3.forward),
+				(new Vector3(140f, 51f), Vector3.left),
+				(new Vector3(70f, 103f), Vector3.backward),
+				(new Vector3(0f, 20f), Vector3.right)
+			);
 
-		//	//Console.Write("x: ");
-		//	//float x = float.Parse(Console.ReadLine());
-		//	//Console.Write("y: ");
-		//	//float y = float.Parse(Console.ReadLine());
-		//	//Console.Write("z: ");
-		//	//float z = float.Parse(Console.ReadLine());
+			//Console.Write("x: ");
+			//float x = float.Parse(Console.ReadLine());
+			//Console.Write("y: ");
+			//float y = float.Parse(Console.ReadLine());
+			//Console.Write("z: ");
+			//float z = float.Parse(Console.ReadLine());
 
-		//	Vector3 v = new Vector3(70f, 50f, 0f);
-		//	float[] angles = room.SetPositionAndCalculateAngles(v);
+			Vector3 v = new Vector3(70f, 50f, 0f);
+			float[] angles = room.SetPositionAndCalculateAngles(v);
 
-		//	Console.Write("[");
-		//	foreach (float angle in angles)
-		//	{
-		//		Console.Write(angle + ", ");
-		//	}
-		//	Console.WriteLine("]");
+			Console.Write("[");
+			foreach (float angle in angles)
+			{
+				Console.Write(angle + ", ");
+			}
+			Console.WriteLine("]");
 
-		//	Vector3 output = room.SetAnglesAndCalculatePosition(angles);
-		//	Console.WriteLine(output);
+			Vector3 output = room.SetAnglesAndCalculatePosition(angles);
+			Console.WriteLine(output);
 
-		//	float offset = 0.01f;
+			float offset = 0.01f;
 
-		//	Random rand = new Random((int)DateTime.Now.Ticks);
-		//	for (int i = 0; i < 100; i++)
-		//	{
-		//		for (int j = 0; j < angles.Length; j++)
-		//		{
-		//			angles[j] += /*((float)rand.NextDouble() * 2f - 1f) * */ (rand.Next(0, 1) * 2f - 1f) * offset;
-		//		}
-		//		output = room.SetAnglesAndCalculatePosition(angles);
-		//		Console.WriteLine($"{i}: {output}");
-		//	}
+			Random rand = new Random((int)DateTime.Now.Ticks);
+			for (int i = 0; i < 100; i++)
+			{
+				for (int j = 0; j < angles.Length; j++)
+				{
+					angles[j] += /*((float)rand.NextDouble() * 2f - 1f) * */ (rand.Next(0, 1) * 2f - 1f) * offset;
+				}
+				output = room.SetAnglesAndCalculatePosition(angles);
+				Console.WriteLine($"{i}: {output}");
+			}
 
-		//	//List<(Vector3, Vector3, float)> errors = new List<(Vector3, Vector3, float)>();
+			//List<(Vector3, Vector3, float)> errors = new List<(Vector3, Vector3, float)>();
 
-		//	//for (int i = 0; i < 1000000; i++)
-		//	//{
-		//	//	Vector3 v = Vector3.Random2D(0f, 140f, 0f, 103f);
+			//for (int i = 0; i < 1000000; i++)
+			//{
+			//	Vector3 v = Vector3.Random2D(0f, 140f, 0f, 103f);
 
-		//	//	float[] angles = room.SetPositionAndCalculateAngles(v);
+			//	float[] angles = room.SetPositionAndCalculateAngles(v);
 
-		//	//	Vector3 output = room.SetAnglesAndCalculatePosition(angles);
-		//	//	float error = Vector3.Distance(output, v);
-		//	//	Console.WriteLine($"Error: {error}\n\t{v}\n\t{output}");
+			//	Vector3 output = room.SetAnglesAndCalculatePosition(angles);
+			//	float error = Vector3.Distance(output, v);
+			//	Console.WriteLine($"Error: {error}\n\t{v}\n\t{output}");
 
-		//	//	errors.Add((v, output, error));
-		//	//}
+			//	errors.Add((v, output, error));
+			//}
 
-		//	//using (TextWriter tw = new StreamWriter("SavedList.txt"))
-		//	//{
-		//	//	foreach ((Vector3, Vector3, float) e in errors)
-		//	//		tw.WriteLine($"{e.Item1}, {e.Item2}, {e.Item3}");
-		//	//}
+			//using (TextWriter tw = new StreamWriter("SavedList.txt"))
+			//{
+			//	foreach ((Vector3, Vector3, float) e in errors)
+			//		tw.WriteLine($"{e.Item1}, {e.Item2}, {e.Item3}");
+			//}
 
-		//	Console.ReadLine();
-		//}
+			Console.ReadLine();
+		}
+#endif
 	}
 }

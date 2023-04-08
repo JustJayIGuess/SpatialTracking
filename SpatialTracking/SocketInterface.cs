@@ -69,50 +69,51 @@ namespace SpatialTracking
 		}
 
 		/// <summary>
-		/// Calculates a simulated noisy data buffer based on a referenced room, at a specified world point.
+		/// Calculates a simulated noisy data buffer based on a referenced room, at a specified world point.<br/>
+		/// Note: This is for LinearTracking architecture only.
 		/// </summary>
-		public static void SimulateData(Vector3 point, LinearTrackingRoom room, float noise = 0f)
+		public static void SimulateLinearData(Vector3 point, TrackingRoom room, float noise = 0f)
 		{
 			// Create a list-form copy of all the LinearTrackingPairs in the room.
-			LinearTrackingPair[] trackingPairs = room.trackingPairs.ToArray();
+			TrackingSet[] trackingSets = room.TrackingSets.ToArray();
 
 			// Calculate observed angles for each camera in each LinearTrackingPair.
-			foreach (LinearTrackingPair pair in trackingPairs)
+			foreach (LinearTrackingSet set in trackingSets)
 			{
-				float rawAngle1 = MathF.Atan((point.y - pair.camera1.worldPosition.y) / (point.x - pair.camera1.worldPosition.x));
-				rawAngle1 *= (int)pair.camera1.measurementDirection;
-				rawAngle1 += pair.camera1.zeroAngle;
+				float rawAngle1 = MathF.Atan((point.y - set.Cameras[0].WorldPosition.y) / (point.x - set.Cameras[0].WorldPosition.x));
+				rawAngle1 *= (int)set.Cameras[0].MeasurementDirection;
+				rawAngle1 += set.Cameras[0].ZeroAngle;
 				if (rawAngle1 >= MathF.PI)
 				{
 					rawAngle1 -= MathF.PI;
 				}
-				buffer[pair.camera1.channel] = rawAngle1 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
+				buffer[set.Cameras[0].Channel] = rawAngle1 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
 
-				float rawAngle2 = MathF.Atan((point.y - pair.camera2.worldPosition.y) / (point.x - pair.camera2.worldPosition.x));
-				rawAngle2 *= (int)pair.camera2.measurementDirection;
-				rawAngle2 += pair.camera2.zeroAngle;
+				float rawAngle2 = MathF.Atan((point.y - set.Cameras[1].WorldPosition.y) / (point.x - set.Cameras[1].WorldPosition.x));
+				rawAngle2 *= (int)set.Cameras[1].MeasurementDirection;
+				rawAngle2 += set.Cameras[1].ZeroAngle;
 				if (rawAngle2 >= MathF.PI)
 				{
 					rawAngle2 -= MathF.PI;
 				}
-				buffer[pair.camera2.channel] = rawAngle2 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
+				buffer[set.Cameras[1].Channel] = rawAngle2 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
 			}
 		}
 
 		/// <summary>
 		/// Adds the channel required by the cameras in <c>pair</c> if they are not already present.
 		/// </summary>
-		/// <param name="pair">The tracking pair to be added.</param>
+		/// <param name="set">The tracking pair to be added.</param>
 		/// <param name="initialValue">Optional parameter for the initial value of the buffer on this channel.</param>
-		public static void AddChannels(LinearTrackingPair pair, float initialValue = -1f)
+		public static void AddChannels(TrackingSet set, float initialValue = -1f)
 		{
-			if (!buffer.ContainsKey(pair.camera1.channel))
+			if (!buffer.ContainsKey(set.Cameras[0].Channel))
 			{
-				buffer.Add(pair.camera1.channel, initialValue);
+				buffer.Add(set.Cameras[0].Channel, initialValue);
 			}
-			if (!buffer.ContainsKey(pair.camera2.channel))
+			if (!buffer.ContainsKey(set.Cameras[1].Channel))
 			{
-				buffer.Add(pair.camera2.channel, initialValue);
+				buffer.Add(set.Cameras[1].Channel, initialValue);
 			}
 		}
 
@@ -147,7 +148,7 @@ namespace SpatialTracking
 		/// </summary>
 		public static void PrintBuffer()
 		{
-			Console.WriteLine("{" + string.Join(", ", buffer.Select(pair => string.Format("{0}: {1}", pair.Key, pair.Value))) + "}");
+			Console.WriteLine("{" + string.Join(", ", buffer.Select(set => string.Format("{0}: {1}", set.Key, set.Value))) + "}");
 		}
 
 	}
