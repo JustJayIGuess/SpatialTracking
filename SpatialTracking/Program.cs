@@ -1,4 +1,4 @@
-﻿#define VECTOR
+﻿#define LINEAR
 #define WRITE
 
 using System;
@@ -11,92 +11,82 @@ namespace SpatialTracking
 {
 	class Program
 	{
-#if VECTOR
 		static void Main(string[] args)
 		{
 			TrackingRoom room = new TrackingRoom();
 
-			TrackingCamera a = new TrackingCamera(0, 0f, new Vector3(1f, 0f, -1f), TrackingCamera.AngleDirection.Clockwise);
-			TrackingCamera b = new TrackingCamera(1, 0f, new Vector3(-1f, 1f, -1f), TrackingCamera.AngleDirection.Clockwise);
-			TrackingCamera c = new TrackingCamera(2, 0f, new Vector3(-1f, -1f, -1f), TrackingCamera.AngleDirection.Clockwise);
-			TrackingCamera d = new TrackingCamera(3, 0f, new Vector3(0f, 0f, 1f), TrackingCamera.AngleDirection.Clockwise);
+			bool verbose = false; // This should really be a preprocessor thingo but idc
+			int iterations = 100000;    // Increase this to make the outputted error file more detailed
+			float noise = 0.01f;
 
-			VectorTrackingSet trackingSet = new VectorTrackingSet(a, b, c, d);
+			// Progress bar
+			int[] progSteps = new int[20];
+			for (int i = 0; i < progSteps.Length; i++)
+			{
+				progSteps[i] = (int)MathF.Ceiling(iterations * ((float)i / progSteps.Length));
+			}
+
+			// Stores per-position data for simulated error of algorithm
+			List<(Vector3, Vector3, float)> errors = new List<(Vector3, Vector3, float)>();
+
+			if (!verbose)
+			{
+				Console.WriteLine(new string('_', progSteps.Length));
+			}
+
+#if VECTOR
+			TrackingCamera a = new TrackingCamera(0, 0f, new Vector3(-1f, -1f, -1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera b = new TrackingCamera(1, 0f, new Vector3(-1f, -1f, 1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera c = new TrackingCamera(2, 0f, new Vector3(-1f, 1f, -1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera d = new TrackingCamera(3, 0f, new Vector3(-1f, 1f, 1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera e = new TrackingCamera(4, 0f, new Vector3(1f, -1f, -1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera f = new TrackingCamera(5, 0f, new Vector3(1f, -1f, 1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera g = new TrackingCamera(6, 0f, new Vector3(1f, 1f, -1f), TrackingCamera.AngleDirection.Clockwise);
+			TrackingCamera h = new TrackingCamera(7, 0f, new Vector3(1f, 1f, 1f), TrackingCamera.AngleDirection.Clockwise);
+
+			VectorTrackingSet trackingSet = new VectorTrackingSet(a, b, c, d, e, f, g, h);
 
 			room.AddTrackingSet(trackingSet);
-
-			float error = 0f;
-			float noise = 0.1f;
-
-			for (int i = 0; i < 100000; i++)
-			{
-				Vector3 target = Vector3.Random2D(-1f, 1f, -1f, 1f);
-				target.z = ((float)new Random().NextDouble() * 2f) - 1f;
-				SocketInterface.SimulateVectorData(target, room, noise);
-
-				room.Update();
-
-				error += Vector3.SqrDistance(target, (Vector3)trackingSet.PredictedPoint);
-			}
-			
-
-			Console.WriteLine($"{noise}:\n\tError: {error / 100000f}");
-
-			Console.ReadLine();
-		}
-#endif
-
-#if LINEAR
-		// For Linear Tracking Architecture
-		static void Main(string[] args)
-		{
-			Matrix m = Matrix.RandomOfSize((3, 3), (-2f, 2f));
-			m.Print();
-
-			Matrix.Invert3x3(m).Print();
-
-			TrackingRoom room = new TrackingRoom();
-
-			// Defining 8 cameras
+#elif LINEAR
 			TrackingCamera a = new TrackingCamera(
 				0,
 				0.5f * MathF.PI,
-				new Vector3(0f, 0f, 0f),
+				new Vector3(-1f, -1f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera ap = new TrackingCamera(
 				1,
 				0f,
-				new Vector3(300f, 0f, 0f),
+				new Vector3(1f, -1f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera b = new TrackingCamera(
 				2,
 				0f,
-				new Vector3(0f, 150f, 0f),
+				new Vector3(-1f, 1f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera bp = new TrackingCamera(
 				3,
 				1.5f * MathF.PI,
-				new Vector3(300f, 150f, 0f),
+				new Vector3(1f, 1f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera c = new TrackingCamera(
 				4,
 				MathF.PI,
-				new Vector3(150f, 0f, 0f),
+				new Vector3(0f, -1f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera cp = new TrackingCamera(
 				5,
 				0.5f * MathF.PI,
-				new Vector3(0f, 75f, 0f),
+				new Vector3(-1f, 0f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera d = new TrackingCamera(
 				6,
 				0f,
-				new Vector3(150f, 150f, 0f),
+				new Vector3(0f, 1f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 			TrackingCamera dp = new TrackingCamera(
 				7,
 				1.5f * MathF.PI,
-				new Vector3(300f, 75f, 0f),
+				new Vector3(1f, 0f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
 
 			// Pairing 8 cameras
@@ -114,42 +104,28 @@ namespace SpatialTracking
 			room.AddTrackingSet(trackingPairD);
 			room.AddTrackingSet(trackingPairE);
 			room.AddTrackingSet(trackingPairF);
+#endif
 
-			//Vector3 target = new Vector3(242.12247f, 103.94585f, 0f);
-			//SocketInterface.SimulateData(target, room, 0.001f); // 0.001f is ~1 pixel for 60deg FOV camera at 720x1280
-
-			//room.Update(true);
-
-			bool verbose = false; // This should really be a preprocessor thingo but idc
-			int iterations = 100000;    // Increase this to make the outputted error file more detailed
-
-			// Progress bar
-			int[] progSteps = new int[20];
-			for (int i = 0; i < progSteps.Length; i++)
-			{
-				progSteps[i] = (int)MathF.Ceiling(iterations * ((float)i / progSteps.Length));
-			}
-
-			// Stores per-position data for simulated error of algorithm
-			List<(Vector3, Vector3, float, float)> errors = new List<(Vector3, Vector3, float, float)>();
-
-			if (!verbose)
-			{
-				Console.WriteLine(new string('_', progSteps.Length));
-			}
 			for (int i = 0; i < iterations; i++)
 			{
 				// Select random point in room and simulate incoming (noisy) data from cameras for that point
-				Vector3 target = Vector3.Random2D(10f, 290f, 10f, 140f);
+				Vector3 target = Vector3.Random2D(-1f, 1f, -1f, 1f);
+				target.z = ((float)new Random().NextDouble()) * 2f - 1f;
 				float error = 0f;
 
-				SocketInterface.SimulateLinearData(target, room, 0.01f); // 0.001f rads is ~1 pixel for 60deg FOV camera at 720x1280
-
+#if VECTOR
+				SocketInterface.SimulateVectorData(target, room, noise); // 0.001f rads is ~1 pixel for 60deg FOV camera at 720x1280
+#elif LINEAR
+				SocketInterface.SimulateLinearData(target, room, noise); // 0.001f rads is ~1 pixel for 60deg FOV camera at 720x1280
+#endif
 				// Tell the room to update based on simulated buffer stored in SocketInterface
 				room.Update(verbose);
 
 				// This should be within TrackingRoom
-				Vector3 sum = new Vector3(0f, 0f, 0f);
+				Vector3 prediction = new Vector3(0f, 0f, 0f);
+#if VECTOR
+				prediction = (Vector3)trackingSet.PredictedPoint;
+#elif LINEAR
 				float totalConfidence = 0f;
 				foreach (LinearTrackingSet trackingPair in room.TrackingSets)
 				{
@@ -158,15 +134,17 @@ namespace SpatialTracking
 
 				foreach (LinearTrackingSet trackingPair in room.TrackingSets)
 				{
-					sum += (Vector3)trackingPair.PredictedPoint * trackingPair.confidence / totalConfidence;
+					prediction += (Vector3)trackingPair.PredictedPoint * trackingPair.confidence / totalConfidence;
 				}
-				error += Vector3.SqrDistance(target, sum);  // SqrDistance 'cause faster
+				target.z = 0f;	// Linear doesn't support z, so disable for error calc.
+#endif
+				error += Vector3.SqrDistance(target, prediction);  // SqrDistance 'cause faster
 
-				errors.Add((target, sum, error, totalConfidence));
+				errors.Add((target, prediction, error));
 
 				if (verbose)
 				{
-					Console.WriteLine($"Got {sum}.");
+					Console.WriteLine($"Got {prediction}.");
 					Console.WriteLine($"Average Error for {target}: {error}.\n\nBuffer:");
 					SocketInterface.PrintBuffer();
 				}
@@ -184,11 +162,12 @@ namespace SpatialTracking
 #if WRITE
 			// Write error data to file
 			Console.WriteLine("Writing to file...");
-			using (TextWriter tw = new StreamWriter("TrackingRoom.txt"))
+			string arcType = room.TrackingSets[0] is LinearTrackingSet ? "Linear" : "Vector";
+			using (TextWriter tw = new StreamWriter($"TrackingRoom{arcType}-{iterations}.txt"))
 			{
-				foreach ((Vector3, Vector3, float, float) e in errors)
+				foreach ((Vector3, Vector3, float) error in errors)
 				{
-					tw.WriteLine($"{e.Item1}, {e.Item2}, {e.Item3}, {e.Item4}");
+					tw.WriteLine($"{error.Item1}, {error.Item2}, {error.Item3}");
 				}
 			}
 #endif
@@ -196,7 +175,6 @@ namespace SpatialTracking
 			Console.WriteLine("\n\nPress enter to exit.");
 			Console.ReadLine();
 		}
-#endif
 
 #if CIRCULAR
 		//For circular tracking architecture
@@ -269,5 +247,5 @@ namespace SpatialTracking
 		}
 #endif
 
-	}
+			}
 }
