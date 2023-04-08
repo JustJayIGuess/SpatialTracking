@@ -128,7 +128,6 @@ namespace SpatialTracking
 
 				while (true)
 				{
-
 					Console.WriteLine("Waiting connection ... ");
 
 					Socket clientSocket = listener.Accept();
@@ -144,7 +143,9 @@ namespace SpatialTracking
 												   0, numByte);
 
 						if (data.IndexOf("<EOF>") > -1)
+						{
 							break;
+						}
 					}
 
 					Console.WriteLine("Text received -> {0} ", data);

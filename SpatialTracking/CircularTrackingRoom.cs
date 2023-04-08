@@ -5,7 +5,7 @@ namespace SpatialTracking
 {
 	class CircularTrackingRoom
 	{
-		private float referenceRadius;
+		private readonly float referenceRadius;
 		private Vector3? trackingTarget = null;
 		private readonly float mergeDistanceSqr = 0.05f;
 
@@ -22,9 +22,9 @@ namespace SpatialTracking
 			this.referenceRadius = referenceRadius;
 			References = new List<CircularTrackingReference>();
 
-			foreach ((Vector3 midpoint, Vector3 direction) initReference in initReferences)
+			foreach ((Vector3 midpoint, Vector3 direction) in initReferences)
 			{
-				AddTrackingReference(initReference.midpoint, initReference.direction);
+				AddTrackingReference(midpoint, direction);
 			}
 		}
 

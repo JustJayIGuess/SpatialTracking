@@ -4,7 +4,7 @@ namespace SpatialTracking
 {
 	struct Vector3
 	{
-		private float[] data;
+		private readonly float[] data;
 
 		public float x { get => data[0]; set => data[0] = value; }
 		public float y { get => data[1]; set => data[1] = value; }
@@ -34,7 +34,7 @@ namespace SpatialTracking
 		public static readonly Vector3 forward = new Vector3(0f, 1f, 0f);
 		public static readonly Vector3 backward = new Vector3(0f, -1f, 0f);
 
-		private static Random random = new Random();
+		private static readonly Random random = new Random();
 
 		public static Vector3 operator+(Vector3 a, Vector3 b)
 		{

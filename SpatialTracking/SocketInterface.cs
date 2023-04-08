@@ -21,9 +21,9 @@ namespace SpatialTracking
 		/// Buffer containing most recent data sent from cameras.
 		/// Key represents the channel, value represents the observed angle from the physical camera on that channel.
 		/// </summary>
-		private static Dictionary<int, float> buffer = new Dictionary<int, float>();
+		private static readonly Dictionary<int, float> buffer = new Dictionary<int, float>();
 
-		private static Random random = new Random();
+		private static readonly Random random = new Random();
 
 		/// <summary>
 		/// Note: This is completely untested as of yet. Still working on Client-side socket stuff.

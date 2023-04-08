@@ -14,47 +14,47 @@ namespace SpatialTracking
 
 #if LINEAR
 		// For Linear Tracking Architecture
-		static async Task Main(string[] args)
+		static void Main(string[] args)
 		{
 			TrackingRoom room = new TrackingRoom();
 
 			// Defining 8 cameras
-			LinearTrackingCamera a = new LinearTrackingCamera(
+			TrackingCamera a = new TrackingCamera(
 				0,
 				0.5f * MathF.PI,
 				new Vector3(0f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
-			LinearTrackingCamera ap = new LinearTrackingCamera(
+			TrackingCamera ap = new TrackingCamera(
 				1,
 				0f,
 				new Vector3(300f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
-			LinearTrackingCamera b = new LinearTrackingCamera(
+			TrackingCamera b = new TrackingCamera(
 				2,
 				0f,
 				new Vector3(0f, 150f),
 				TrackingCamera.AngleDirection.Clockwise);
-			LinearTrackingCamera bp = new LinearTrackingCamera(
+			TrackingCamera bp = new TrackingCamera(
 				3,
 				1.5f * MathF.PI,
 				new Vector3(300f, 150f),
 				TrackingCamera.AngleDirection.Clockwise);
-			LinearTrackingCamera c = new LinearTrackingCamera(
+			TrackingCamera c = new TrackingCamera(
 				4,
 				MathF.PI,
 				new Vector3(150f, 0f),
 				TrackingCamera.AngleDirection.Clockwise);
-			LinearTrackingCamera cp = new LinearTrackingCamera(
+			TrackingCamera cp = new TrackingCamera(
 				5,
 				0.5f * MathF.PI,
 				new Vector3(0f, 75f),
 				TrackingCamera.AngleDirection.Clockwise);
-			LinearTrackingCamera d = new LinearTrackingCamera(
+			TrackingCamera d = new TrackingCamera(
 				6,
 				0f,
 				new Vector3(150f, 150f),
 				TrackingCamera.AngleDirection.Clockwise);
-			LinearTrackingCamera dp = new LinearTrackingCamera(
+			TrackingCamera dp = new TrackingCamera(
 				7,
 				1.5f * MathF.PI,
 				new Vector3(300f, 75f),
@@ -147,7 +147,9 @@ namespace SpatialTracking
 			using (TextWriter tw = new StreamWriter("TrackingRoom.txt"))
 			{
 				foreach ((Vector3, Vector3, float, float) e in errors)
+				{
 					tw.WriteLine($"{e.Item1}, {e.Item2}, {e.Item3}, {e.Item4}");
+				}
 			}
 
 			Console.WriteLine("\n\nPress enter to exit.");

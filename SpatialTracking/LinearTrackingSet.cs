@@ -7,7 +7,7 @@ using System.Text;
 /*
  * 
  * One camera is transmitted over channel 2n and paired camera is transmitted over channel 2n + 1, where n is 'channel' provided in ctor.
- * Alternatively, this confusion can be avoided by first creating LinearTrackingCamera objects representing the cameras, and these can be passed to an overloaded ctor.
+ * Alternatively, this confusion can be avoided by first creating TrackingCamera objects representing the cameras, and these can be passed to an overloaded ctor.
  * 
  */
 
@@ -23,7 +23,7 @@ namespace SpatialTracking
 		public float confidence;
 
 		/// <summary>
-		/// Construct a <c>new LinearTrackingPair</c> on channel <c>channel</c> by first creating two new <c>LinearTrackingCamera</c>s, and their respective world positions and angles.
+		/// Construct a <c>new LinearTrackingPair</c> on channel <c>channel</c> by first creating two new <c>TrackingCamera</c>s, and their respective world positions and angles.
 		/// </summary>
 		/// <param name="channel">The socket channel that this <c>LinearTrackingPair</c> will use.
 		/// <c>camera1</c> will be assigned <c>channel</c> * 2 as its channel, and <c>camera2</c> will be assigned <c>channel</c> * 2 + 1.
@@ -38,21 +38,21 @@ namespace SpatialTracking
 			float zeroAngle1, Vector3 worldPosition1, TrackingCamera.AngleDirection measurementDirection1,
 			float zeroAngle2, Vector3 worldPosition2, TrackingCamera.AngleDirection measurementDirection2)
 		{
-			Cameras = new LinearTrackingCamera[2];
-			Cameras[0] = new LinearTrackingCamera(channel * 2, zeroAngle1, worldPosition1, measurementDirection1);
-			Cameras[1] = new LinearTrackingCamera(channel * 2 + 1, zeroAngle2, worldPosition2, measurementDirection2);
+			Cameras = new TrackingCamera[2];
+			Cameras[0] = new TrackingCamera(channel * 2, zeroAngle1, worldPosition1, measurementDirection1);
+			Cameras[1] = new TrackingCamera(channel * 2 + 1, zeroAngle2, worldPosition2, measurementDirection2);
 			PredictedPoint = null;
 			confidence = -1f;
 		}
 
 		/// <summary>
-		/// Construct a <c>new LinearTrackingPair</c> on channel <c>channel</c> based on two <c>LinearTrackingCamera</c>s.
+		/// Construct a <c>new LinearTrackingPair</c> on channel <c>channel</c> based on two <c>TrackingCamera</c>s.
 		/// </summary>
 		/// <param name="camera1">The first camera used in this <c>LinearTrackingPair</c></param>
 		/// <param name="camera2">The second camera used in this <c>LinearTrackingPair</c></param>
-		public LinearTrackingSet(LinearTrackingCamera camera1, LinearTrackingCamera camera2)
+		public LinearTrackingSet(TrackingCamera camera1, TrackingCamera camera2)
 		{
-			Cameras = new LinearTrackingCamera[2] { camera1, camera2 };
+			Cameras = new TrackingCamera[2] { camera1, camera2 };
 			PredictedPoint = null;
 			confidence = -1f;
 		}
