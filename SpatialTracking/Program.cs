@@ -105,12 +105,12 @@ namespace SpatialTracking
 			room.AddTrackingSet(trackingPairE);
 			room.AddTrackingSet(trackingPairF);
 #endif
-
+			Random random = new Random();
 			for (int i = 0; i < iterations; i++)
 			{
 				// Select random point in room and simulate incoming (noisy) data from cameras for that point
 				Vector3 target = Vector3.Random2D(-1f, 1f, -1f, 1f);
-				target.z = ((float)new Random().NextDouble()) * 2f - 1f;
+				target.z = ((float)random.NextDouble()) * 2f - 1f;
 				float error = 0f;
 
 #if VECTOR
