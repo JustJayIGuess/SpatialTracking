@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SpatialTracking
+namespace SpatialTrackingBrain
 {
 	struct Vector3
 	{

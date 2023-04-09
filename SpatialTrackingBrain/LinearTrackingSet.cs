@@ -11,7 +11,7 @@ using System.Text;
  * 
  */
 
-namespace SpatialTracking
+namespace SpatialTrackingBrain
 {
 	/// <summary>
 	/// Note: this only functions in 2D currently.

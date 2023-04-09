@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace SpatialTracking
+namespace SpatialTrackingBrain
 {
 	/// <summary>
 	/// A static class for managing and interfacing with the real cameras through a network socket.

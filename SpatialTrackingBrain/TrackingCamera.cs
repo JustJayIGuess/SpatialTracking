@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SpatialTracking
+namespace SpatialTrackingBrain
 {
 	/// <summary>
 	/// A class to manage individual cameras, their properties and their data stream.

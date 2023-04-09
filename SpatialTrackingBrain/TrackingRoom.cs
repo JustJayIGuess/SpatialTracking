@@ -4,9 +4,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace SpatialTracking
+namespace SpatialTrackingBrain
 {
-	class TrackingRoom
+	abstract class TrackingRoom
 	{
 		public List<TrackingSet> TrackingSets { get; protected set; }
 		protected Dictionary<TrackingCamera, int> cameraUsageCount;
@@ -39,7 +39,6 @@ namespace SpatialTracking
 			}
 		}
 
-		// Fix this!
 		public void RemoveTrackingSet(TrackingSet trackingSet)
 		{
 			TrackingSets.Remove(trackingSet);
@@ -68,6 +67,8 @@ namespace SpatialTracking
 				trackingSet.Update(verbose);
 			}
 		}
+
+		public abstract Vector3? GetPredictedPoint();
 
 		public void StartServer()
 		{

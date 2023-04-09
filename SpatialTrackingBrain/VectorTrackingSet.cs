@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SpatialTracking
+namespace SpatialTrackingBrain
 {
 	/// <summary>
 	/// In this tracking set, each camera holds a horizontal and vertical angle (stored respectively

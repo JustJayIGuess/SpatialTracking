@@ -1,4 +1,4 @@
-﻿#define VECTOR
+﻿#define LINEAR
 #define WRITE
 
 using System;
@@ -7,13 +7,17 @@ using System.IO;
 using System.Linq;
 
 
-namespace SpatialTracking
+namespace SpatialTrackingBrain
 {
 	class Program
 	{
 		static void Main(string[] args)
 		{
-			TrackingRoom room = new TrackingRoom();
+#if VECTOR
+			TrackingRoom room = new VectorTrackingRoom();
+#elif LINEAR
+			TrackingRoom room = new LinearTrackingRoom();
+#endif
 
 			bool verbose = false;		// This should really be a preprocessor thingo but idc
 			int iterations = 100000;	// Increase this to make the outputted error file more detailed
@@ -122,20 +126,8 @@ namespace SpatialTracking
 				room.Update(verbose);
 
 				// This should be within TrackingRoom
-				Vector3 prediction = new Vector3(0f, 0f, 0f);
-#if VECTOR
-				prediction = (Vector3)trackingSet.PredictedPoint;
-#elif LINEAR
-				float totalConfidence = 0f;
-				foreach (LinearTrackingSet trackingPair in room.TrackingSets)
-				{
-					totalConfidence += trackingPair.confidence;
-				}
-
-				foreach (LinearTrackingSet trackingPair in room.TrackingSets)
-				{
-					prediction += (Vector3)trackingPair.PredictedPoint * trackingPair.confidence / totalConfidence;
-				}
+				Vector3 prediction = (Vector3)room.GetPredictedPoint();
+#if LINEAR				
 				target.z = 0f;	// Linear doesn't support z, so disable for error calc.
 #endif
 				error += Vector3.SqrDistance(target, prediction);  // SqrDistance 'cause faster
