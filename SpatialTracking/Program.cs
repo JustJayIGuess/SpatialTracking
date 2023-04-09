@@ -1,4 +1,4 @@
-﻿#define LINEAR
+﻿#define VECTOR
 #define WRITE
 
 using System;
