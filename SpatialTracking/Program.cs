@@ -15,8 +15,8 @@ namespace SpatialTracking
 		{
 			TrackingRoom room = new TrackingRoom();
 
-			bool verbose = false; // This should really be a preprocessor thingo but idc
-			int iterations = 100000;    // Increase this to make the outputted error file more detailed
+			bool verbose = false;		// This should really be a preprocessor thingo but idc
+			int iterations = 100000;	// Increase this to make the outputted error file more detailed
 			float noise = 0.01f;
 
 			// Progress bar

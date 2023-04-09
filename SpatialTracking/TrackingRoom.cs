@@ -43,24 +43,17 @@ namespace SpatialTracking
 		public void RemoveTrackingSet(TrackingSet trackingSet)
 		{
 			TrackingSets.Remove(trackingSet);
-			if (cameraUsageCount[trackingSet.Cameras[0]] == 1)
+			foreach (TrackingCamera camera in trackingSet.Cameras)
 			{
-				cameraUsageCount.Remove(trackingSet.Cameras[0]);
-				SocketInterface.RemoveChannel(trackingSet.Cameras[0].Channel);
-			}
-			else
-			{
-				cameraUsageCount[trackingSet.Cameras[0]] -= 1;
-			}
-
-			if (cameraUsageCount[trackingSet.Cameras[1]] == 1)
-			{
-				cameraUsageCount.Remove(trackingSet.Cameras[1]);
-				SocketInterface.RemoveChannel(trackingSet.Cameras[1].Channel);
-			}
-			else
-			{
-				cameraUsageCount[trackingSet.Cameras[1]] -= 1;
+				if (cameraUsageCount[camera] == 1)
+				{
+					cameraUsageCount.Remove(camera);
+					SocketInterface.RemoveChannel(camera.Channel);
+				}
+				else
+				{
+					cameraUsageCount[camera] -= 1;
+				}
 			}
 		}
 		public void Update(bool verbose = false)
