@@ -53,7 +53,7 @@ This is set to zero to find local extrema.
 0 &= \sum\limits_{i}\left[ (\vec{x}-\vec{a_{i}}) - \hat{d_{i}}\left(\hat{d_{i}}(\vec{x}-\vec{a})\right) \right]
 \end{align*}
 ```
-The vectors can now be thought of as matrices, with dot products of the column vector $\vec{x}$ being represented as $\vec{x}^{T}\vec{x}$. This allows the expression to be simplified to a closed-form solution for $s$.
+The vectors can now be thought of as matrices, with dot products of the column vector $\vec{x}$ with itself being represented as $\vec{x}^{T}\vec{x}$. This allows the expression to be simplified to a closed-form solution for $s$.
 ```math
 \begin{align*}
 0 &= \sum\limits_{i}\left[ I(\vec{x}-\vec{a_{i}}) - \hat{d_{i}}\hat{d_{i}}^{T}(\vec{x}-\vec{a_{i}}) \right]\\
