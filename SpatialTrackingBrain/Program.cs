@@ -168,6 +168,7 @@ namespace SpatialTrackingBrain
 			Console.ReadLine();
 		}
 
+// Honestly just dont even try to use this it doesnt work
 #if CIRCULAR
 		//For circular tracking architecture
 		public static CircularTrackingRoom room;
@@ -239,5 +240,5 @@ namespace SpatialTrackingBrain
 		}
 #endif
 
-			}
+	}
 }
