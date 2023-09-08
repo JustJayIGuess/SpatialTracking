@@ -21,7 +21,7 @@ namespace SpatialTrackingBrain
 
 			bool verbose = false;		// This should really be a preprocessor thingo but idc
 			int iterations = 1000000;	// Increase this to make the outputted error file more detailed
-			float noise = 0.01f;
+			float noise = 0.01f;		// In radians
 
 			// Progress bar
 			int[] progSteps = new int[20];

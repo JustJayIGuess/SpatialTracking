@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SpatialTrackingBrain
+﻿namespace SpatialTrackingBrain
 {
 	/// <summary>
 	/// A class to manage individual cameras, their properties and their data stream.

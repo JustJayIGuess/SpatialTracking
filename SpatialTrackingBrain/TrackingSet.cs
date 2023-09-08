@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SpatialTrackingBrain
+﻿namespace SpatialTrackingBrain
 {
+	/// <summary>
+	/// A tracking set holds a number of <c>TrackingCamera</c>s, and update a <c>PredictedPoint</c> variable when <c>Update()</c> is called.
+	/// </summary>
 	abstract class TrackingSet
 	{
 		/// <summary>

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SpatialTrackingBrain
+﻿namespace SpatialTrackingBrain
 {
+	/// <summary>
+	/// Vector tracking algorithm uses only one <c>TrackingSet</c> that contains all cameras.
+	/// This class just returns the predicted point of the sole tracking set attached to it.
+	/// </summary>
 	class VectorTrackingRoom : TrackingRoom
 	{
 		public override Vector3? GetPredictedPoint()
