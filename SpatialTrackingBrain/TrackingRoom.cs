@@ -8,8 +8,28 @@ namespace SpatialTrackingBrain
 {
 	abstract class TrackingRoom
 	{
+		// Maybe these should be read from a config file
+		private readonly static int port = 1338;
+		private readonly static int broadPort = 1339;
+		private readonly static string responseMessage = "STIPRSPN";
+		private readonly static string requestMessage = "STIPRQST";
+		private readonly static string okMessage = "STDATAOK";
+		private readonly static int bufferSize = 16;
+
+		private Socket dataSock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+		private Socket discoverySock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+		private EndPoint dataEP = new IPEndPoint(IPAddress.Any, port);
+		private EndPoint discoveryEP = new IPEndPoint(IPAddress.Any, broadPort);
+		private State state = new State();
+		private AsyncCallback recv = null;
+
 		public List<TrackingSet> TrackingSets { get; protected set; }
 		protected Dictionary<TrackingCamera, int> cameraUsageCount;
+
+		public class State
+		{
+			public byte[] buffer = new byte[bufferSize];
+		}
 
 		public TrackingRoom()
 		{
@@ -70,88 +90,52 @@ namespace SpatialTrackingBrain
 
 		public abstract Vector3? GetPredictedPoint();
 
+		//public void StartServer()
+		//{
+		//	IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
+		//	IPAddress ipAddr = ipHost.AddressList[0];
+		//	IPEndPoint dataEndpoint = new IPEndPoint(ipAddr, port);
+		//	IPEndPoint discoveryEndpoint = new IPEndPoint(ipAddr, broadPort);
+
+		//	Console.WriteLine(ipAddr.ToString());
+
+		//	Socket sender = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Udp);
+
+		//	try
+		//	{
+		//		sender.Connect(dataEndpoint);
+		//	}
+		//	catch (ArgumentNullException ane)
+		//	{
+		//		Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
+		//	}
+		//	catch (SocketException se)
+		//	{
+		//		Console.WriteLine("SocketException : {0}", se.ToString());
+		//	}
+		//	catch (Exception e)
+		//	{
+		//		Console.WriteLine("Unexpected exception : {0}", e.ToString());
+		//	}
+
+		//	Console.WriteLine($"Socket connected to {sender.RemoteEndPoint}");
+		//}
+
 		public void StartServer()
 		{
-			IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
-			IPAddress ipAddr = ipHost.AddressList[0];
-			IPEndPoint localEndPoint = new IPEndPoint(ipAddr, 11111);
+			dataSock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
+			dataSock.Bind(dataEP);
+			discoverySock.Bind(discoveryEP);
 
-			Console.WriteLine(ipAddr.ToString());
+			EndPoint epFrom = new IPEndPoint(IPAddress.Any, 0);
 
-			Socket sender = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-			try
-			{
-				sender.Connect(localEndPoint);
-			}
-			catch (ArgumentNullException ane)
-			{
-				Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
-			}
-			catch (SocketException se)
-			{
-				Console.WriteLine("SocketException : {0}", se.ToString());
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine("Unexpected exception : {0}", e.ToString());
-			}
-
-			Console.WriteLine($"Socket connected to {sender.RemoteEndPoint}");
-		}
-
-		public void ExecuteServer()
-		{
-			IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
-			IPAddress ipAddr = ipHost.AddressList[0];
-			IPEndPoint localEndPoint = new IPEndPoint(ipAddr, 11111);
-
-			Console.WriteLine(ipAddr.ToString());
-
-			Socket listener = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-			try
-			{
-				listener.Bind(localEndPoint);
-
-				listener.Listen(10);
-
-				while (true)
-				{
-					Console.WriteLine("Waiting connection ... ");
-
-					Socket clientSocket = listener.Accept();
-
-					byte[] bytes = new byte[1024];
-					string data = null;
-
-					while (true)
-					{
-						int numByte = clientSocket.Receive(bytes);
-
-						data += Encoding.ASCII.GetString(bytes,
-												   0, numByte);
-
-						if (data.IndexOf("<EOF>") > -1)
-						{
-							break;
-						}
-					}
-
-					Console.WriteLine("Text received -> {0} ", data);
-					byte[] message = Encoding.ASCII.GetBytes("Test Server");
-
-					clientSocket.Send(message);
-
-					clientSocket.Shutdown(SocketShutdown.Both);
-					clientSocket.Close();
-				}
-			}
-
-			catch (Exception e)
-			{
-				Console.WriteLine(e.ToString());
-			}
+			// Dont like this
+			dataSock.BeginReceiveFrom(state.buffer, 0, bufferSize, SocketFlags.None, ref epFrom, recv = (ar) => {
+				State so = (State)ar.AsyncState;
+				int bytes = dataSock.EndReceiveFrom(ar, ref epFrom);
+				dataSock.BeginReceiveFrom(so.buffer, 0, bufferSize, SocketFlags.None, ref epFrom, recv, so);
+				Console.WriteLine("RECV: {0}: {1}, {2}", epFrom.ToString(), bytes, Encoding.ASCII.GetString(so.buffer, 0, bytes));
+			}, state);
 		}
 	}
 }

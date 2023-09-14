@@ -109,6 +109,8 @@ namespace SpatialTrackingBrain
 			room.AddTrackingSet(trackingPairE);
 			room.AddTrackingSet(trackingPairF);
 #endif
+			room.StartServer();
+
 			Random random = new Random();
 			for (int i = 0; i < iterations; i++)
 			{
