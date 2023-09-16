@@ -64,3 +64,8 @@ The vectors can now be thought of as matrices, with dot products of the column v
 \end{align*}
 ```
 This value of $\vec{x}$ was used as the predicted object position.
+
+## TODO
+- [ ] Implement client-side simulation of data.
+- [ ] Store received data into channelBuffers in SocketInterface
+- [ ] Set up protocol to transmit client camera position and orientation to the server during service discovery.
