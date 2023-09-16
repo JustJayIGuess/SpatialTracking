@@ -20,51 +20,78 @@ namespace SpatialTrackingBrain
 		/// Buffer containing most recent data sent from cameras.
 		/// Key represents the channel, value represents the observed angle from the physical camera on that channel.
 		/// </summary>
-		private static readonly Dictionary<int, float[]> buffer = new Dictionary<int, float[]>();
+		private static readonly Dictionary<int, float[]> channelBuffers = new Dictionary<int, float[]>();
 
 		private static readonly Random random = new Random();
 
-		/// <summary>
-		/// Note: This is completely untested as of yet. Still working on Client-side socket stuff.
-		/// </summary>
-		/// <returns></returns>
-		public static async System.Threading.Tasks.Task InitServer()
+		// Maybe these should be read from a config file
+		private const int Port = 1338;
+		private const int BroadPort = 1339;
+		private const string ResponseMessage = "STIPRSPN";
+		private const string RequestMessage = "STIPRQST";
+		private const string OkMessage = "STDATAOK";
+		private const int BufferSize = 64;
+
+		private static Socket dataSock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+		private static Socket discoverySock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+		private static EndPoint dataEP = new IPEndPoint(IPAddress.Any, Port);
+		private static EndPoint discoveryEP = new IPEndPoint(IPAddress.Any, BroadPort);
+		private static State state = new State();
+		private static AsyncCallback recv = null;
+
+		private static HashSet<EndPoint> clients = new HashSet<EndPoint>();
+
+		public class State
 		{
-			if (Active)
-			{
-				return;
-			}
+			public byte[] buffer = new byte[BufferSize];
+		}
 
-			IPHostEntry ipHostInfo = await Dns.GetHostEntryAsync("localhost");
-			IPAddress ipAddress = ipHostInfo.AddressList[0];
-			IPEndPoint endpoint = new IPEndPoint(ipAddress, 1337);
+		public static void StartServer()
+		{
+			StartDiscovery();
+			StartDataStream();
+		}
 
-			using Socket listener = new Socket(endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+		private static void StartDiscovery()
+		{
+			discoverySock.Bind(discoveryEP);
+			clients.Clear();
+			EndPoint epFrom = new IPEndPoint(IPAddress.Any, 0);
 
-			listener.Bind(endpoint);
-			listener.Listen(100);
+			// Dont like this
+			discoverySock.BeginReceiveFrom(state.buffer, 0, BufferSize, SocketFlags.None, ref epFrom, recv = (ar) => {
+				State so = (State)ar.AsyncState;
+				int numBytes = discoverySock.EndReceiveFrom(ar, ref epFrom);
 
-			Socket handler = await listener.AcceptAsync();
-
-			while (true)
-			{
-				byte[] buffer = new byte[1024];
-				int received = await handler.ReceiveAsync(buffer, SocketFlags.None);
-				string response = Encoding.UTF8.GetString(buffer, 0, received);
-
-				string eom = "<|EOM|>";
-				if (response.IndexOf(eom) > -1)
+				if (Encoding.ASCII.GetString(so.buffer, 0, numBytes) == RequestMessage)
 				{
-					Console.WriteLine($"Socket server received message: \"{response.Replace(eom, "")}\"");
-
-					string ackMessage = "<|ACK|>";
-					byte[] echoBytes = Encoding.UTF8.GetBytes(ackMessage);
-					await handler.SendAsync(echoBytes, 0);
-					Console.WriteLine($"Socket server sent acknowledgment: \"{ackMessage}\"");
-
-					break;
+					discoverySock.SendTo(Encoding.ASCII.GetBytes(ResponseMessage), epFrom);
+					clients.Add(epFrom);
 				}
-			}
+
+				discoverySock.BeginReceiveFrom(so.buffer, 0, BufferSize, SocketFlags.None, ref epFrom, recv, so);
+			}, state);
+		}
+
+		private static void StartDataStream()
+		{
+			dataSock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
+			dataSock.Bind(dataEP);
+			EndPoint epFrom = new IPEndPoint(IPAddress.Any, 0);
+
+			// Dont like this
+			dataSock.BeginReceiveFrom(state.buffer, 0, BufferSize, SocketFlags.None, ref epFrom, recv = (ar) => {
+				State so = (State)ar.AsyncState;
+				int numBytes = dataSock.EndReceiveFrom(ar, ref epFrom);
+
+				if (clients.Contains(epFrom))
+				{
+					Console.WriteLine($"RECV: {Encoding.ASCII.GetString(so.buffer, 0, numBytes)}");
+					dataSock.SendTo(Encoding.ASCII.GetBytes(OkMessage), epFrom);
+				}
+
+				dataSock.BeginReceiveFrom(so.buffer, 0, BufferSize, SocketFlags.None, ref epFrom, recv, so);
+			}, state);
 		}
 
 		/// <summary>
@@ -86,7 +113,7 @@ namespace SpatialTrackingBrain
 				{
 					rawAngle1 -= MathF.PI;
 				}
-				buffer[set.Cameras[0].Channel][0] = rawAngle1 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
+				channelBuffers[set.Cameras[0].Channel][0] = rawAngle1 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
 
 				float rawAngle2 = MathF.Atan((point.y - set.Cameras[1].WorldPosition.y) / (point.x - set.Cameras[1].WorldPosition.x));
 				rawAngle2 *= (int)set.Cameras[1].MeasurementDirection;
@@ -95,7 +122,7 @@ namespace SpatialTrackingBrain
 				{
 					rawAngle2 -= MathF.PI;
 				}
-				buffer[set.Cameras[1].Channel][0] = rawAngle2 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
+				channelBuffers[set.Cameras[1].Channel][0] = rawAngle2 + (float)(random.NextDouble() - 0.5f) * 2f * noise;
 			}
 		}
 
@@ -118,7 +145,7 @@ namespace SpatialTrackingBrain
 			{
 				Vector3 dir = (camera.WorldPosition - point).Normalized();
 
-				buffer[camera.Channel] = new float[] {
+				channelBuffers[camera.Channel] = new float[] {
 					MathF.Atan2(dir.y, dir.x) + (float)(random.NextDouble() - 0.5f) * 2f * noise, 
 					MathF.Acos(dir.z) + (float)(random.NextDouble() - 0.5f) * 2f * noise
 				};
@@ -134,9 +161,9 @@ namespace SpatialTrackingBrain
 		{
 			foreach (TrackingCamera camera in set.Cameras)
 			{
-				if (!buffer.ContainsKey(camera.Channel))
+				if (!channelBuffers.ContainsKey(camera.Channel))
 				{
-					buffer.Add(camera.Channel, new float[] { initialValue });
+					channelBuffers.Add(camera.Channel, new float[] { initialValue });
 				}
 			}
 		}
@@ -147,7 +174,7 @@ namespace SpatialTrackingBrain
 		/// <param name="channel"></param>
 		public static void RemoveChannel(int channel)
 		{
-			buffer.Remove(channel);
+			channelBuffers.Remove(channel);
 		}
 
 		/// <summary>
@@ -157,9 +184,9 @@ namespace SpatialTrackingBrain
 		/// <returns></returns>
 		public static float[] GetData(int channel)
 		{
-			if (buffer.ContainsKey(channel))
+			if (channelBuffers.ContainsKey(channel))
 			{
-				return buffer[channel];
+				return channelBuffers[channel];
 			}
 			else
 			{
@@ -173,7 +200,7 @@ namespace SpatialTrackingBrain
 		public static void PrintBuffer()
 		{
 			Console.Write("[ ");
-			foreach (KeyValuePair<int, float[]> kvp in buffer)
+			foreach (KeyValuePair<int, float[]> kvp in channelBuffers)
 			{
 				Console.Write(kvp.Key + ": [" + string.Join(", ", kvp.Value) + "], ");
 			}

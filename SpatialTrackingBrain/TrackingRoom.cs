@@ -8,28 +8,8 @@ namespace SpatialTrackingBrain
 {
 	abstract class TrackingRoom
 	{
-		// Maybe these should be read from a config file
-		private readonly static int port = 1338;
-		private readonly static int broadPort = 1339;
-		private readonly static string responseMessage = "STIPRSPN";
-		private readonly static string requestMessage = "STIPRQST";
-		private readonly static string okMessage = "STDATAOK";
-		private readonly static int bufferSize = 16;
-
-		private Socket dataSock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-		private Socket discoverySock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-		private EndPoint dataEP = new IPEndPoint(IPAddress.Any, port);
-		private EndPoint discoveryEP = new IPEndPoint(IPAddress.Any, broadPort);
-		private State state = new State();
-		private AsyncCallback recv = null;
-
 		public List<TrackingSet> TrackingSets { get; protected set; }
 		protected Dictionary<TrackingCamera, int> cameraUsageCount;
-
-		public class State
-		{
-			public byte[] buffer = new byte[bufferSize];
-		}
 
 		public TrackingRoom()
 		{
@@ -119,23 +99,6 @@ namespace SpatialTrackingBrain
 		//	}
 
 		//	Console.WriteLine($"Socket connected to {sender.RemoteEndPoint}");
-		//}
-
-		public void StartServer()
-		{
-			dataSock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
-			dataSock.Bind(dataEP);
-			discoverySock.Bind(discoveryEP);
-
-			EndPoint epFrom = new IPEndPoint(IPAddress.Any, 0);
-
-			// Dont like this
-			dataSock.BeginReceiveFrom(state.buffer, 0, bufferSize, SocketFlags.None, ref epFrom, recv = (ar) => {
-				State so = (State)ar.AsyncState;
-				int bytes = dataSock.EndReceiveFrom(ar, ref epFrom);
-				dataSock.BeginReceiveFrom(so.buffer, 0, bufferSize, SocketFlags.None, ref epFrom, recv, so);
-				Console.WriteLine("RECV: {0}: {1}, {2}", epFrom.ToString(), bytes, Encoding.ASCII.GetString(so.buffer, 0, bytes));
-			}, state);
-		}
+		//}		
 	}
 }

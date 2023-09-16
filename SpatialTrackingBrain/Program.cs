@@ -1,5 +1,5 @@
 ﻿#define VECTOR
-#define WRITE
+//#define WRITE
 
 using System;
 using System.Collections.Generic;
