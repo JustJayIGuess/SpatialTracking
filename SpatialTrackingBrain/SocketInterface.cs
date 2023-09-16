@@ -32,26 +32,33 @@ namespace SpatialTrackingBrain
 		private const string OkMessage = "STDATAOK";
 		private const int BufferSize = 64;
 
-		private static Socket dataSock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-		private static Socket discoverySock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-		private static EndPoint dataEP = new IPEndPoint(IPAddress.Any, Port);
-		private static EndPoint discoveryEP = new IPEndPoint(IPAddress.Any, BroadPort);
-		private static State state = new State();
+		private readonly static Socket dataSock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+		private readonly static Socket discoverySock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+		private readonly static EndPoint dataEP = new IPEndPoint(IPAddress.Any, Port);
+		private readonly static EndPoint discoveryEP = new IPEndPoint(IPAddress.Any, BroadPort);
+		private readonly static State state = new State();
 		private static AsyncCallback recv = null;
 
-		private static HashSet<EndPoint> clients = new HashSet<EndPoint>();
+		private readonly static HashSet<EndPoint> clients = new HashSet<EndPoint>();
 
 		public class State
 		{
 			public byte[] buffer = new byte[BufferSize];
 		}
 
+		/// <summary>
+		/// Start the server - this includes both the discovery service and data transmission service.
+		/// </summary>
 		public static void StartServer()
 		{
 			StartDiscovery();
 			StartDataStream();
 		}
 
+		/// <summary>
+		/// Start reading messages over the discovery socket.
+		/// UDP broadcast messages asking to connect with the server will be responded to, and the client IP will be added to a private client list.
+		/// </summary>
 		private static void StartDiscovery()
 		{
 			discoverySock.Bind(discoveryEP);
@@ -73,6 +80,9 @@ namespace SpatialTrackingBrain
 			}, state);
 		}
 
+		/// <summary>
+		/// Start reading messages over the data socket.
+		/// </summary>
 		private static void StartDataStream()
 		{
 			dataSock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.ReuseAddress, true);
